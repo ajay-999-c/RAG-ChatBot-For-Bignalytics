@@ -1,0 +1,13 @@
+langchain-core==0.1.45
+langchain-community==0.0.34
+sentence-transformers==2.7.0
+transformers==4.40.0
+faiss-cpu==1.7.4
+fastapi==0.110.0
+uvicorn==0.29.0
+python-dotenv==1.0.1
+pydantic==2.6.4
+deepeval==0.20.7
+streamlit==1.33.0
+PyMuPDF==1.24.2          # PDF reader
+pandas==2.2.2            # CSV loader

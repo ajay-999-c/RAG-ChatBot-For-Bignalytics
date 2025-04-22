@@ -1,13 +1,66 @@
+# Core RAG dependencies
 langchain-core==0.1.45
 langchain-community==0.0.34
 sentence-transformers==2.7.0
 transformers==4.40.0
 faiss-cpu==1.7.4
+
+# LLM inference and API
+openai==1.14.3  # For Groq compatibility
 fastapi==0.110.0
 uvicorn==0.29.0
-python-dotenv==1.0.1
-pydantic==2.6.4
+
+# Data + PDF processing
+pandas==2.2.2
+python-dateutil>=2.8.2
+pytz>=2020.1
+tzdata>=2022.7
+PyMuPDF==1.24.2
+
+# Evaluation
 deepeval==0.20.7
+scikit-learn
+scipy
+tqdm
+
+# Reranking models
+torch==2.2.0
+torchaudio==2.2.0
+huggingface-hub>=0.19.3
+tokenizers<0.20,>=0.19
+safetensors>=0.4.1
+regex!=2019.12.17
+
+# Streamlit frontend
 streamlit==1.33.0
-PyMuPDF==1.24.2          # PDF reader
-pandas==2.2.2            # CSV loader
+altair<6,>=4.0
+blinker<2,>=1.0.0
+cachetools<6,>=4.0
+click<9,>=7.0
+gitpython!=3.1.19,<4,>=3.0.7
+packaging<25,>=16.8
+protobuf<5,>=3.20
+pyarrow>=7.0
+pydeck<1,>=0.8.0b4
+rich<14,>=10.14.0
+tenacity<9,>=8.1.0
+toml<2,>=0.10.1
+tornado<7,>=6.0.3
+watchdog>=2.1.5
+
+# Langchain-specific deps
+aiohttp<4.0.0,>=3.8.3
+dataclasses-json<0.7,>=0.5.7
+langsmith<0.2.0,>=0.1.0
+PyYAML>=5.3
+requests>=2,<3
+SQLAlchemy<3,>=1.4
+
+# Pydantic (for FastAPI and validation)
+pydantic==2.6.4
+pydantic-core==2.16.3
+annotated-types>=0.4.0
+
+# Optional utils
+numpy==1.26.4
+pillow==10.2.0

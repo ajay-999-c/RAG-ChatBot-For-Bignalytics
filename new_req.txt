@@ -1,0 +1,8 @@
+tenacity==8.2.3
+openai==1.66.3
+langchain-core==0.3.52
+anyio==4.8.0
+httpx==0.28.1
+jiter==0.6.1
+pypdf==5.1.0
+platformdirs==4.3.7

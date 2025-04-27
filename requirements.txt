@@ -1,37 +1,52 @@
-# Core RAG dependencies
-langchain-core==0.1.45
-langchain-community==0.0.34
+# --- Core RAG Libraries ---
+langchain==0.2.17
+langchain-core==0.2.43
+langchain-community==0.2.19
+langchain-openai==0.1.23
+langchain-groq==0.1.4
+langchain-cohere==0.2.4
+langchain-experimental==0.0.65
+langchain-text-splitters==0.2.4
+
+# --- Unstructured PDF and CSV Loading ---
+unstructured==0.11.7
+unstructured-inference==0.7.13
+pdf2image==1.17.0
+pytesseract==0.3.10
+Pillow==10.2.0
+PyMuPDF==1.24.2
+pypdf==5.4.0
+filetype==1.2.0
+chardet==5.2.0
+python-magic==0.4.27
+pikepdf==9.5.2
+pdfminer.six==20231228
+
+# --- LLMs, Embeddings ---
 sentence-transformers==2.7.0
 transformers==4.40.0
-faiss-cpu==1.7.4
-
-# LLM inference and API
-openai==1.14.3  # For Groq compatibility
-fastapi==0.110.0
-uvicorn==0.29.0
-
-# Data + PDF processing
-pandas==2.2.2
-python-dateutil>=2.8.2
-pytz>=2020.1
-tzdata>=2022.7
-PyMuPDF==1.24.2
-
-# Evaluation
-deepeval==0.20.7
-scikit-learn
-scipy
-tqdm
-
-# Reranking models
-torch==2.2.0
-torchaudio==2.2.0
 huggingface-hub>=0.19.3
 tokenizers<0.20,>=0.19
 safetensors>=0.4.1
-regex!=2019.12.17
 
-# Streamlit frontend
+# --- Vector Store ---
+faiss-cpu==1.7.4
+
+# --- Unstructured PDF and CSV Loading ---
+unstructured==0.11.7
+pdf2image==1.17.0
+pytesseract==0.3.10
+Pillow==10.2.0
+PyMuPDF==1.24.2
+pypdf==5.4.0
+filetype==1.2.0
+chardet==5.2.0
+python-magic==0.4.27
+
+# --- OpenAI / Groq APIs ---
+openai==1.45.0
+
+# --- Streamlit Frontend ---
 streamlit==1.33.0
 altair<6,>=4.0
 blinker<2,>=1.0.0
@@ -48,19 +63,18 @@ toml<2,>=0.10.1
 tornado<7,>=6.0.3
 watchdog>=2.1.5
 
-# Langchain-specific deps
-aiohttp<4.0.0,>=3.8.3
-dataclasses-json<0.7,>=0.5.7
-langsmith<0.2.0,>=0.1.0
-PyYAML>=5.3
-requests>=2,<3
-SQLAlchemy<3,>=1.4
+# --- FastAPI Backend (Optional) ---
+fastapi==0.110.0
+uvicorn==0.29.0
 
-# Pydantic (for FastAPI and validation)
-pydantic==2.6.4
-pydantic-core==2.16.3
-annotated-types>=0.4.0
+# --- Pydantic (for validation, FastAPI, LangChain) ---
+pydantic==2.7.1
+# (pydantic-core auto-installed as 2.18.2)
 
-# Optional utils
-numpy==1.26.4
-pillow==10.2.0
+# --- Evaluation, ML Utilities ---
+deepeval==0.20.7
+scikit-learn
+scipy
+tqdm
+nltk==3.9.1
+langdetect==1.0.9

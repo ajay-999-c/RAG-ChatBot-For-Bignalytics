@@ -10,7 +10,7 @@ USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"  # Default is False
 
 try:
     if USE_GROQ:
-        # Use Groq API
+        print("🔵 Loading Groq LLM model: mixtral-8x7b-32768...")
         from langchain_groq import ChatGroq
 
         generator_llm = ChatGroq(
@@ -18,10 +18,11 @@ try:
             model_name="mixtral-8x7b-32768",  # Or "llama3-70b-8192"
             temperature=0.2
         )
-        log_event("Initialized Groq ChatGroq LLM: mixtral-8x7b-32768")
+        log_event("✅ Initialized Groq ChatGroq LLM: mixtral-8x7b-32768")
+        print("✅ Successfully initialized Groq model.")
 
     else:
-        # Use local Ollama (Gemma 3b)
+        print("🔵 Loading local Ollama LLM model: gemma-2b-it...")
         from langchain_community.llms import Ollama
 
         generator_llm = Ollama(
@@ -29,13 +30,16 @@ try:
             base_url="http://localhost:11434",
             temperature=0.2
         )
-        log_event("Initialized Ollama local LLM: gemma-2b-it")
+        log_event("✅ Initialized Ollama local LLM: gemma-2b-it")
+        print("✅ Successfully initialized Ollama model.")
 
 except Exception as e:
-    log_event(f"Failed to initialize LLM: {str(e)}")
+    log_event(f"❌ Failed to initialize LLM: {str(e)}")
+    print(f"❌ Error initializing LLM: {str(e)}")
     raise e
 
 # Prompt Template
+print("🔵 Building Generation Prompt Template...")
 generation_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping users.
 
@@ -48,5 +52,8 @@ Context:
 Question:
 {question}
 """)
+print("✅ Prompt Template ready.")
 
+# Build Generator Chain
 generator_chain = generation_prompt | generator_llm
+print("✅ Generator Chain ready for use.")

@@ -18,3 +18,16 @@ ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
 2025-04-27 12:08:48,837 - INFO - Loading faiss.
 2025-04-27 12:08:49,254 - INFO - Successfully loaded faiss.
 2025-04-27 12:08:49,320 - INFO - \u2705 Vectorstore successfully created.
+2025-04-27 14:32:35,040 - INFO - Initialized Ollama local LLM: gemma-2b-it
+2025-04-27 14:32:35,264 - INFO - Loading faiss with AVX2 support.
+2025-04-27 14:32:35,264 - INFO - Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2025-04-27 14:32:35,264 - INFO - Loading faiss.
+2025-04-27 14:32:35,306 - INFO - Successfully loaded faiss.
+2025-04-27 14:33:22,967 - INFO - USER: c639b7489b13311c | STEP: Query Transformation | INPUT TOKENS: 1 | OUTPUT TOKENS: 11 | TIME: 26.44s | SECTION: None | RETRIEVED DOCS: None | INPUT: hi
+2025-04-27 14:35:56,102 - INFO - Initialized Ollama local LLM: gemma-2b-it
+2025-04-27 14:35:56,284 - INFO - Loading faiss with AVX2 support.
+2025-04-27 14:35:56,300 - INFO - Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2025-04-27 14:35:56,300 - INFO - Loading faiss.
+2025-04-27 14:35:56,348 - INFO - Successfully loaded faiss.

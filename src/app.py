@@ -1,91 +1,100 @@
 # app_streamlit.py
 
 import streamlit as st
-from load_data import load_all_data
-from vectorstore import load_vectorstore
-from query_transformer import rewrite_query_with_tracking, split_rewritten_query
-from retriever import get_dynamic_retriever, retrieve_for_each_subquestion, merge_contexts
-from generator import generator_chain
-from memory import add_message_to_history, initialize_user_session
-from utils import generate_user_id
-from logger import log_event
-from prompt_builder import build_final_prompt
 import time
+from rag_pipeline import process_query_detailed
+from utils import generate_user_id
+from memory import initialize_user_session, get_conversation_history
 
-# --- Streamlit UI ---
-st.set_page_config(page_title="Bignalytics RAG Chatbot 🔎", page_icon="🔎")
+# --- Streamlit Settings ---
+st.set_page_config(page_title="Bignalytics RAG Chatbot 🔎", page_icon="🔎", layout="wide")
 
+# --- Main Titles ---
 st.title("🔎 Bignalytics RAG Chatbot")
-st.write("Ask questions about Bignalytics courses, fees, placements, batches!")
-
-# Sidebar: Settings
-st.sidebar.title("Settings")
-top_k = st.sidebar.slider("Top-K Chunks to Retrieve", 1, 10, 5)
-memory_turns = st.sidebar.slider("Conversation Memory Turns", 1, 5, 3)
-use_query_transformer = st.sidebar.checkbox("Use Query Rewriting", True)
+st.caption("Ask anything about our courses, fees, placement support, batches!")
 
 # Dummy IP/User-Agent for now (Streamlit doesn't expose real ones easily)
 ip_address = "127.0.0.1"
 user_agent = "Streamlit-Test-User"
 
-# Initialize session
 if "user_id" not in st.session_state:
     st.session_state.user_id = generate_user_id(ip_address, user_agent)
     initialize_user_session(st.session_state.user_id)
 
-# User input box
-user_query = st.text_input("Type your question:", key="user_input")
+# Layout: Chat (left) + Process Visualization (right)
+col1, col2 = st.columns([3, 1])
 
-if st.button("Ask"):
-    if user_query:
-        st.subheader("🔹 User Question")
-        st.write(user_query)
+# 💬 Main Chat Interface
+with col1:
+    st.header("💬 Chat Interface")
 
-        user_id = st.session_state.user_id
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-        start_time = time.time()
+    user_query = st.text_input("Ask your question:", key="user_input")
 
-        # Step 1: Rewrite Query
-        if use_query_transformer:
-            rewritten_query = rewrite_query_with_tracking(user_query, user_id)
-            sub_questions = split_rewritten_query(rewritten_query)
+    if st.button("Submit"):
+        if user_query:
+            # Save user question to history
+            st.session_state.chat_history.append(("user", user_query))
+            
+            with st.spinner("🔄 Processing your question..."):
+                # Full RAG Pipeline
+                result = process_query_detailed(user_query, ip_address, user_agent)
+
+                # Save result for metadata
+                st.session_state.last_result = result
+
+                # Save generated bot answer to history
+                st.session_state.chat_history.append(("bot", result["generated_answer"]))
+
         else:
-            rewritten_query = user_query
-            sub_questions = [user_query]
+            st.warning("⚠️ Please enter a question before submitting.")
 
-        # Step 2: Retriever
-        retriever = get_dynamic_retriever(rewritten_query)
-        retrieved_contexts = retrieve_for_each_subquestion(sub_questions, retriever, top_k=top_k)
-        final_context = merge_contexts(retrieved_contexts)
+    # Show Full Chat History
+    for role, message in st.session_state.chat_history:
+        if role == "user":
+            with st.chat_message("user"):
+                st.markdown(f"**You:** {message}")
+        else:
+            with st.chat_message("assistant"):
+                st.markdown(f"**Bignalytics Bot:** {message}")
 
-        # Step 3: Build final prompt (system + memory + context + question)
-        final_prompt = build_final_prompt(user_id, final_context, user_query)
+# 📊 Process Visualization + Metadata
+with col2:
+    st.header("📊 Process Debugging")
 
-        # Step 4: Generator call (Groq/Ollama dynamic)
-        generated_answer = generator_chain.invoke({"input": final_prompt})
+    if "last_result" in st.session_state:
+        result = st.session_state.last_result
 
-        # Save conversation
-        add_message_to_history(user_id, user_query, generated_answer)
+        # Step 1: Query Rewriting
+        with st.expander("1️⃣ Query Rewriting ✅"):
+            st.markdown(f"**Rewritten Query:**\n\n{result['rewritten_query']}")
 
-        end_time = time.time()
+        # Step 2: Sub-Question Expansion
+        with st.expander("2️⃣ Sub-Questions ✅"):
+            for idx, q in enumerate(result['sub_questions']):
+                st.markdown(f"**{idx+1}.** {q}")
 
-        # Step 5: Display answer
-        st.subheader("🔹 Bignalytics Chatbot Answer")
-        st.success(generated_answer)
+        # Step 3: Retrieval from Vectorstore
+        with st.expander("3️⃣ Retrieval ✅"):
+            st.markdown(f"**Chunks Retrieved:** {len(result['retrieved_chunks'])}")
+            for idx, chunk in enumerate(result['retrieved_chunks'][:3]):  # Limit to top 3 previews
+                st.markdown(f"**Chunk {idx+1}:** {chunk[:300]}...")
 
-        st.info(f"🕐 Response generated in {end_time-start_time:.2f} seconds")
+        # Step 4: Prompt Construction
+        with st.expander("4️⃣ Prompt Context ✅"):
+            st.markdown(f"**Context Passed to LLM:**\n\n{result['final_prompt'][:500]}...")  # Truncated
 
-        # Log event
-        log_event(f"USER {user_id} asked: {user_query} | Answered successfully.")
-    
+        # Step 5: Answer Generation
+        with st.expander("5️⃣ Final Answer ✅"):
+            st.markdown(f"**Answer Generated:**\n\n{result['generated_answer']}")
+
+        # Step 6: Performance Tracking
+        with st.expander("6️⃣ Performance Metrics ✅"):
+            st.markdown(f"**Input Tokens:** {result['input_tokens']}")
+            st.markdown(f"**Output Tokens:** {result['output_tokens']}")
+            st.markdown(f"**Total Time Taken:** {result['total_time']:.2f} seconds")
+
     else:
-        st.warning("Please type a question before submitting!")
-
-# Optional: Show conversation history
-if st.sidebar.checkbox("Show Conversation History"):
-    from memory import get_conversation_history
-
-    history = get_conversation_history(st.session_state.user_id)
-    st.subheader("🗂️ Conversation History")
-    for role, message in history:
-        st.write(f"**{role.capitalize()}**: {message}")
+        st.info("ℹ️ Ask your first question to see the full processing steps.")

@@ -20,32 +20,39 @@ def process_query_detailed(user_query: str, ip_address: str, user_agent: str) ->
 
     start_pipeline = time.time()
 
-    # Rewrite Query
+    # Rewrite
     rewritten_query = rewrite_query_with_tracking(user_query, user_id)
     sub_questions = split_rewritten_query(rewritten_query)
 
     # Retrieval
-    retriever = get_dynamic_retriever(rewritten_query)
-    retrieved_contexts = retrieve_for_each_subquestion(sub_questions, retriever, top_k=5)
-    final_context = merge_contexts(retrieved_contexts)
+    retriever, section_type = get_dynamic_retriever(rewritten_query)
+    retrieved_docs = retriever.get_relevant_documents(rewritten_query)
+    retrieved_docs = filter_retrieved_docs(retrieved_docs, section_type, db_type="faiss")
 
-    # Build final prompt
-    final_prompt = build_final_prompt(user_id, final_context, user_query)
+    final_context = merge_contexts(retrieved_docs)
 
-    # Generate Answer
-    generated_answer = generator_chain.invoke({"input": final_prompt})
+    # Prompt
+    final_prompt = final_context  # since your generator expects context/question separately
 
-    # Save conversation
-    add_message_to_history(user_id, user_query, generated_answer)
+    # Generate
+    generated_answer = generator_chain.invoke({
+        "context": final_context,
+        "question": user_query
+    })
 
     end_pipeline = time.time()
+
+    # Save chat memory
+    add_message_to_history(user_id, user_query, generated_answer)
 
     return {
         "rewritten_query": rewritten_query,
         "sub_questions": sub_questions,
-        "retrieved_chunks": [doc.page_content for doc in retrieved_contexts],
+        "retrieved_chunks": [doc.page_content for doc in retrieved_docs],
+        "final_prompt": final_prompt,
         "generated_answer": generated_answer,
-        "input_tokens": len(user_query.split()),  # rough estimation
-        "output_tokens": len(generated_answer.split()),  # rough estimation
-        "total_time": end_pipeline - start_pipeline,
+        "input_tokens": len(user_query.split()),
+        "output_tokens": len(generated_answer.split()),
+        "total_time": end_pipeline - start_pipeline
     }
+

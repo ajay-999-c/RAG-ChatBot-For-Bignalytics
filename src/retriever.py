@@ -38,3 +38,22 @@ def get_dynamic_retriever(user_query: str, vectorstore_path="./faiss_index"):
     if section_type and section_type != "general_info":
         return vectorstore.as_retriever(search_kwargs={"k": 5, "filter": {"section_type": section_type}})
     return vectorstore.as_retriever(search_kwargs={"k": 5})
+
+
+
+def retrieve_for_each_subquestion(sub_questions, retriever, top_k=5):
+    """
+    Retrieve documents for each sub-question separately.
+    """
+    all_retrieved_docs = []
+    for sub_q in sub_questions:
+        retrieved = retriever.get_relevant_documents(sub_q)
+        all_retrieved_docs.extend(retrieved)
+    return all_retrieved_docs
+
+def merge_contexts(docs):
+    """
+    Merge retrieved documents into a single context string.
+    """
+    context_text = "\n\n".join(doc.page_content for doc in docs)
+    return context_text

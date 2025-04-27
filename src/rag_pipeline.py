@@ -1,9 +1,8 @@
-# rag_pipeline.py
 
 from load_data import load_all_data
 from vectorstore import create_vectorstore_from_documents
 from query_transformer import rewrite_query_with_tracking, split_rewritten_query
-from retriever import get_dynamic_retriever, retrieve_for_each_subquestion, merge_contexts
+from retriever import get_dynamic_retriever, retrieve_for_each_subquestion, merge_contexts, filter_retrieved_docs
 from generator import generator_chain
 from memory import add_message_to_history, initialize_user_session
 from utils import generate_user_id

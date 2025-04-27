@@ -1,16 +1,18 @@
 # generator.py
 
+import os
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
-import os
-from logger import log_event  # Import logger to log loading status
+from logger import log_event  # For logging events into file
+
+print("\n🔵 [System] Starting Generator Initialization...\n")
 
 # Load optional environment config
-USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"  # Default is False
+USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"  # Default False
 
 try:
     if USE_GROQ:
-        print("🔵 Loading Groq LLM model: mixtral-8x7b-32768...")
+        print("🔵 [Loading] Attempting to load Groq LLM model (mixtral-8x7b-32768)...")
         from langchain_groq import ChatGroq
 
         generator_llm = ChatGroq(
@@ -19,27 +21,27 @@ try:
             temperature=0.2
         )
         log_event("✅ Initialized Groq ChatGroq LLM: mixtral-8x7b-32768")
-        print("✅ Successfully initialized Groq model.")
+        print("✅ [Success] Groq model loaded successfully.\n")
 
     else:
-        print("🔵 Loading local Ollama LLM model: gemma-2b-it...")
+        print("🔵 [Loading] Attempting to load Ollama LLM model (gemma3:1b)...")
         from langchain_community.llms import Ollama
 
         generator_llm = Ollama(
-            model="gemma-2b-it",  # Adjust to gemma-3b if you pulled that, or gemma-1b-it for 1B
+            model="gemma3:1b",  # ✅ Correct model name!
             base_url="http://localhost:11434",
             temperature=0.2
         )
-        log_event("✅ Initialized Ollama local LLM: gemma-2b-it")
-        print("✅ Successfully initialized Ollama model.")
+        log_event("✅ Initialized Ollama local LLM: gemma3:1b")
+        print("✅ [Success] Ollama local model loaded successfully.\n")
 
 except Exception as e:
     log_event(f"❌ Failed to initialize LLM: {str(e)}")
-    print(f"❌ Error initializing LLM: {str(e)}")
+    print(f"❌ [Error] Failed to initialize LLM: {str(e)}")
     raise e
 
-# Prompt Template
-print("🔵 Building Generation Prompt Template...")
+# Build Prompt Template
+print("🔵 [Building] Creating Generation Prompt Template...")
 generation_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping users.
 
@@ -52,8 +54,11 @@ Context:
 Question:
 {question}
 """)
-print("✅ Prompt Template ready.")
+print("✅ [Success] Generation Prompt Template ready.\n")
 
 # Build Generator Chain
+print("🔵 [Building] Combining Prompt and LLM into Generator Chain...")
 generator_chain = generation_prompt | generator_llm
-print("✅ Generator Chain ready for use.")
+print("✅ [Success] Generator Chain ready for use.\n")
+
+print("✅ [System] Generator initialization completed.\n")

@@ -1,4 +1,3 @@
-# build_vectorstore.py
 
 
 from load_data import load_all_data

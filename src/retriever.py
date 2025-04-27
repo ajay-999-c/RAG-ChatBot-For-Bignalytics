@@ -31,13 +31,23 @@ def classify_query_section(user_query: str):
     response = classification_chain.invoke({"user_query": user_query})
     return response.strip()
 
-def get_dynamic_retriever(user_query: str, vectorstore_path="./faiss_index"):
+# def get_dynamic_retriever(user_query: str, vectorstore_path="./faiss_index"):
+#     vectorstore = load_vectorstore(vectorstore_path)
+#     section_type = classify_query_section(user_query)
+
+#     if section_type and section_type != "general_info":
+#         return vectorstore.as_retriever(search_kwargs={"k": 5, "filter": {"section_type": section_type}})
+#     return vectorstore.as_retriever(search_kwargs={"k": 5})
+
+def get_dynamic_retriever(user_query: str, vectorstore_path="./faiss_index", db_type="faiss"):
     vectorstore = load_vectorstore(vectorstore_path)
+    
     section_type = classify_query_section(user_query)
 
-    if section_type and section_type != "general_info":
-        return vectorstore.as_retriever(search_kwargs={"k": 5, "filter": {"section_type": section_type}})
-    return vectorstore.as_retriever(search_kwargs={"k": 5})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+
+    # ✅ Now return BOTH retriever and section_type
+    return retriever, section_type
 
 
 
@@ -57,3 +67,16 @@ def merge_contexts(docs):
     """
     context_text = "\n\n".join(doc.page_content for doc in docs)
     return context_text
+
+
+
+def filter_retrieved_docs(docs, target_section_type, db_type="faiss"):
+    """Manually filter retrieved docs by section_type for FAISS. No filtering needed for Chroma/Qdrant."""
+    if db_type != "faiss":
+        return docs  # Already filtered inside retrieval if db supports metadata filters
+
+    if not target_section_type or target_section_type == "general_info":
+        return docs  # No need to filter
+
+    # Manual filtering for FAISS
+    return [doc for doc in docs if doc.metadata.get("section_type") == target_section_type]

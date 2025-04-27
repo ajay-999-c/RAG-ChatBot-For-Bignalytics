@@ -1,4 +1,3 @@
-# embedding.py
 
 from typing import List
 from langchain_community.embeddings import OllamaEmbeddings

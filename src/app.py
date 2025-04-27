@@ -26,7 +26,7 @@ col1, col2 = st.columns([3, 1])
 
 # 💬 Main Chat Interface
 with col1:
-    st.header("💬 Chat Interface")
+    st.header("💬 Welcome to BigAnalytics Chat")
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []

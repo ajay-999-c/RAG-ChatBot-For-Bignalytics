@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+import csv
 
 
 logging.basicConfig(
@@ -18,10 +19,6 @@ def log_pipeline_step(step_name, input_text, input_tokens, output_tokens, time_t
 
 
 
-
-import os
-import csv
-from datetime import datetime
 
 def save_full_pipeline_log(log_data: dict, user_id: str):
     os.makedirs("full_logs", exist_ok=True)

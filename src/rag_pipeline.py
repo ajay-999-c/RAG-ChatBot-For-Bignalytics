@@ -14,27 +14,34 @@ VECTORSTORE_PATH = "./faiss_index"
 vectorstore = load_vectorstore(VECTORSTORE_PATH)
 
 
+
+
 def process_query_detailed(user_query: str, ip_address: str, user_agent: str) -> dict:
     user_id = generate_user_id(ip_address, user_agent)
     initialize_user_session(user_id)
 
     start_pipeline = time.time()
 
-    # Rewrite
+    # Step 1: Rewrite Query
     rewritten_query = rewrite_query_with_tracking(user_query, user_id)
     sub_questions = split_rewritten_query(rewritten_query)
 
-    # Retrieval
+    # Step 2: Retrieval
     retriever, section_type = get_dynamic_retriever(rewritten_query)
     retrieved_docs = retriever.get_relevant_documents(rewritten_query)
     retrieved_docs = filter_retrieved_docs(retrieved_docs, section_type, db_type="faiss")
 
+    # Step 2.5: Fallback Retrieval if 0 Chunks
+    if len(retrieved_docs) == 0:
+        print("⚠️ No documents found after rewritten query. Falling back to original query retrieval...")
+        retriever, section_type = get_dynamic_retriever(user_query)
+        retrieved_docs = retriever.get_relevant_documents(user_query)
+        retrieved_docs = filter_retrieved_docs(retrieved_docs, section_type, db_type="faiss")
+
+    # Step 3: Build Final Context
     final_context = merge_contexts(retrieved_docs)
 
-    # Prompt
-    final_prompt = final_context  # since your generator expects context/question separately
-
-    # Generate
+    # Step 4: Generate Answer
     generated_answer = generator_chain.invoke({
         "context": final_context,
         "question": user_query
@@ -42,17 +49,16 @@ def process_query_detailed(user_query: str, ip_address: str, user_agent: str) ->
 
     end_pipeline = time.time()
 
-    # Save chat memory
+    # Save Conversation Memory
     add_message_to_history(user_id, user_query, generated_answer)
 
     return {
         "rewritten_query": rewritten_query,
         "sub_questions": sub_questions,
         "retrieved_chunks": [doc.page_content for doc in retrieved_docs],
-        "final_prompt": final_prompt,
+        "final_prompt": final_context,
         "generated_answer": generated_answer,
         "input_tokens": len(user_query.split()),
         "output_tokens": len(generated_answer.split()),
         "total_time": end_pipeline - start_pipeline
     }
-

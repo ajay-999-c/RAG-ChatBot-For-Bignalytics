@@ -19,35 +19,64 @@ def log_pipeline_step(step_name, input_text, input_tokens, output_tokens, time_t
 
 
 
-def save_full_pipeline_log(log_data: dict, user_id: str):
-    os.makedirs("full_logs", exist_ok=True)  # Make folder if doesn't exist
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"full_logs/user_{user_id}_{timestamp}.log"
+import os
+import csv
+from datetime import datetime
 
-    with open(filename, "w", encoding="utf-8") as f:
+def save_full_pipeline_log(log_data: dict, user_id: str):
+    os.makedirs("full_logs", exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename_txt = f"full_logs/user_{user_id}_{timestamp}.log"
+    filename_csv = f"full_logs/user_{user_id}_{timestamp}.csv"
+
+    # Save text log
+    with open(filename_txt, "w", encoding="utf-8") as f:
         f.write(f"Question: {log_data['user_query']}\n\n")
         f.write("1️⃣ Query Rewriting ✅\n\n")
         f.write(f"{log_data['rewritten_query']}\n\n")
-        
         f.write("2️⃣ Sub-Questions ✅\n\n")
         for idx, q in enumerate(log_data['sub_questions'], 1):
             f.write(f"{idx}. {q}\n")
         f.write("\n")
-        
         f.write("3️⃣ Retrieval ✅\n\n")
         f.write(f"Chunks Retrieved: {len(log_data['retrieved_chunks'])}\n")
         for idx, chunk in enumerate(log_data['retrieved_chunks'], 1):
             f.write(f"Chunk {idx}: {chunk[:500]}...\n\n")
-        
         f.write("4️⃣ Prompt Context ✅\n\n")
-        f.write(f"{log_data['final_prompt'][:1000]}...\n\n")  # First 1000 chars
-
+        f.write(f"{log_data['final_prompt'][:1000]}...\n\n")
         f.write("5️⃣ Final Answer ✅\n\n")
         f.write(f"{log_data['generated_answer']}\n\n")
-
         f.write("6️⃣ Performance Metrics ✅\n\n")
         f.write(f"Input Tokens: {log_data['input_tokens']}\n")
         f.write(f"Output Tokens: {log_data['output_tokens']}\n")
         f.write(f"Total Time Taken: {log_data['total_time']:.2f} seconds\n")
-    
-    print(f"✅ Full pipeline log saved at {filename}")
+
+    print(f"✅ Full pipeline log saved at {filename_txt}")
+
+    # Save CSV log
+    with open(filename_csv, "w", encoding="utf-8", newline="") as csvfile:
+        fieldnames = [
+            "Timestamp", "User ID", "Question", 
+            "Rewritten Query", "Sub-Questions",
+            "Chunks Retrieved", "Prompt Context", 
+            "Generated Answer", "Input Tokens", "Output Tokens", "Total Time (s)"
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        writer.writerow({
+            "Timestamp": timestamp,
+            "User ID": user_id,
+            "Question": log_data["user_query"],
+            "Rewritten Query": log_data["rewritten_query"],
+            "Sub-Questions": " | ".join(log_data["sub_questions"]),
+            "Chunks Retrieved": len(log_data["retrieved_chunks"]),
+            "Prompt Context": log_data["final_prompt"][:500],  # First 500 chars
+            "Generated Answer": log_data["generated_answer"],
+            "Input Tokens": log_data["input_tokens"],
+            "Output Tokens": log_data["output_tokens"],
+            "Total Time (s)": f"{log_data['total_time']:.2f}"
+        })
+
+    print(f"✅ CSV version of pipeline log saved at {filename_csv}")

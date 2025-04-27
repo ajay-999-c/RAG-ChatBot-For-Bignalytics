@@ -20,14 +20,17 @@ print("✅ [Success] Query Rewrite LLM loaded successfully.\n")
 print("🔵 [System] Building Stronger Query Rewrite Prompt Template...\n")
 
 query_rewrite_prompt = PromptTemplate.from_template("""
-You are an AI system tasked with expanding user queries to improve retrieval in a RAG system.
+You are an AI assistant designed to support the Bignalytics Educational Institute.
+
+You must help reformulate user queries to improve retrieval in a RAG system.
 
 STRICT INSTRUCTIONS:
+- You are helping answer questions about: courses, fees, batches, placements at Bignalytics.
 - Expand into 2–4 sub-questions only if meaningful.
-- **Strictly preserve** original meaning.
-- **Stay focused** on user's topic (fees, placements, batches, etc).
-- DO NOT invent unrelated new topics.
-- If already specific, just rephrase slightly.
+- **Strictly preserve** original user intent.
+- **Stay focused** on the user's topic (fees, courses, placements, batches).
+- Do NOT invent or hallucinate unrelated questions.
+- If the user query is already specific, just rephrase slightly.
 
 Original Query:
 {original_query}

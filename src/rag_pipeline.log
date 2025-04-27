@@ -1,0 +1,20 @@
+2025-04-27 10:21:55,628 - INFO - \u274c ERROR loading documents: name 'load_all_data' is not defined
+2025-04-27 10:22:33,783 - INFO - \u274c ERROR loading documents: unstructured package not found, please install it with `pip install unstructured`
+2025-04-27 10:55:23,928 - INFO - \u274c ERROR loading documents: No module named 'pdfminer'
+2025-04-27 10:57:06,461 - INFO - \u274c ERROR loading documents: No module named 'cv2'
+2025-04-27 10:59:56,074 - INFO - \u274c ERROR loading documents: No module named 'unstructured_inference'
+2025-04-27 11:05:29,038 - INFO - \u274c ERROR loading documents: No module named 'pikepdf'
+2025-04-27 11:09:28,539 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 11:09:53,842 - INFO - \u274c ERROR creating vectorstore: Error raised by inference API HTTP code: 404, {"error":"model \"nomic-embed-text-v1\" not found, try pulling it first"}
+2025-04-27 11:12:37,481 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 11:29:01,875 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 11:40:17,310 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 11:40:30,820 - INFO - \u274c ERROR creating vectorstore: "BatchingOllamaEmbeddings" object has no field "batch_size"
+2025-04-27 11:42:22,192 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 11:43:13,118 - INFO - pikepdf C++ to Python logger bridge initialized
+2025-04-27 12:08:48,837 - INFO - Loading faiss with AVX2 support.
+2025-04-27 12:08:48,837 - INFO - Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2025-04-27 12:08:48,837 - INFO - Loading faiss.
+2025-04-27 12:08:49,254 - INFO - Successfully loaded faiss.
+2025-04-27 12:08:49,320 - INFO - \u2705 Vectorstore successfully created.

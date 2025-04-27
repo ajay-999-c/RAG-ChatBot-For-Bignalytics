@@ -10,27 +10,38 @@ from logger import log_pipeline_step
 print("\n🔵 [System] Initializing Query Rewriting LLM (Gemma3-1b) from Ollama...\n")
 
 rewrite_llm = Ollama(
-    model="gemma3:1b",  # ✅ Switched to Gemma3-1b
+    model="gemma3:1b",
     base_url="http://localhost:11434",
     temperature=0.0
 )
+
 print("✅ [Success] Query Rewrite LLM loaded successfully.\n")
 
-# Stronger Query Rewriting Prompt
-print("🔵 [System] Building Stronger Query Rewrite Prompt Template...\n")
+# Two different prompt templates
 
-query_rewrite_prompt = PromptTemplate.from_template("""
-You are an AI assistant designed to support the Bignalytics Educational Institute.
+# 1. Reword-only prompt (for specific queries)
+reword_prompt = PromptTemplate.from_template("""
+You are a helpful assistant at Bignalytics Educational Institute.
 
-You must help reformulate user queries to improve retrieval in a RAG system.
+The user query is already specific. 
+Your job is to simply **rephrase** it slightly to improve clarity, without changing the original meaning.
 
-STRICT INSTRUCTIONS:
-- You are helping answer questions about: courses, fees, batches, placements at Bignalytics.
-- Expand into 2–4 sub-questions only if meaningful.
-- **Strictly preserve** original user intent.
-- **Stay focused** on the user's topic (fees, courses, placements, batches).
-- Do NOT invent or hallucinate unrelated questions.
-- If the user query is already specific, just rephrase slightly.
+Original Query:
+{original_query}
+
+Reworded Query:
+""")
+
+# 2. Expand-only prompt (for general queries)
+expand_prompt = PromptTemplate.from_template("""
+You are an AI assistant at Bignalytics Educational Institute.
+
+Expand the broad user query into 2–3 specific sub-questions to help in retrieving relevant information about courses, fees, batches, placements.
+
+STRICT RULES:
+- Preserve the original meaning.
+- Stay focused only on Bignalytics education topics.
+- Do not invent unrelated new topics.
 
 Original Query:
 {original_query}
@@ -41,18 +52,41 @@ Expanded Sub-Questions:
 3.
 """)
 
-print("✅ [Success] Stronger Query Rewrite Prompt ready.\n")
+print("✅ [Success] Built Reword + Expand Prompt Templates.\n")
 
-# Build Rewrite Chain
-rewrite_chain = query_rewrite_prompt | rewrite_llm
-print("✅ [Success] Query Rewrite Chain ready.\n")
+# Build chains
+reword_chain = reword_prompt | rewrite_llm
+expand_chain = expand_prompt | rewrite_llm
+print("✅ [Success] Chains ready.\n")
 
+# Helper: Detect specificity
+def is_query_specific(user_query: str) -> bool:
+    """Heuristic: Detect if query is already specific."""
+    specific_keywords = ["fee", "fees", "placement", "batch", "duration", "discount", "EMI", "installment", "admission"]
+    word_count = len(user_query.split())
+
+    if word_count <= 12:
+        return True
+
+    for keyword in specific_keywords:
+        if keyword.lower() in user_query.lower():
+            return True
+
+    return False
+
+# Main rewrite function
 def rewrite_query_with_tracking(user_query: str, user_id: str):
-    print(f"🔵 [Transform] Starting query transformation for user_id: {user_id}...\n")
+    print(f"🔵 [Transform] Starting smart query transformation for user_id: {user_id}...\n")
     input_tokens = count_tokens(user_query)
     start_time = time.time()
 
-    rewritten = rewrite_chain.invoke({"original_query": user_query})
+    # Detect specificity
+    if is_query_specific(user_query):
+        print("🧠 Detected Specific Query. Only rewording...\n")
+        rewritten = reword_chain.invoke({"original_query": user_query})
+    else:
+        print("🧠 Detected General Query. Expanding into sub-questions...\n")
+        rewritten = expand_chain.invoke({"original_query": user_query})
 
     end_time = time.time()
     output_tokens = count_tokens(rewritten)
@@ -61,11 +95,14 @@ def rewrite_query_with_tracking(user_query: str, user_id: str):
     print(f"🧠 Input Tokens: {input_tokens} | Output Tokens: {output_tokens}")
     print(f"🕐 Time Taken: {end_time - start_time:.2f} seconds\n")
 
+    # Logging
     log_pipeline_step("Query Transformation", user_query, input_tokens, output_tokens, end_time - start_time, user_id=user_id)
 
     return rewritten
 
+# Helper: Split expanded query into sub-questions
 def split_rewritten_query(rewritten_query: str) -> list:
+    """Split expanded sub-questions if they exist."""
     lines = rewritten_query.strip().split("\n")
     questions = [line.lstrip("1234567890. ").strip() for line in lines if line.strip() and line.strip()[0].isdigit()]
     return questions

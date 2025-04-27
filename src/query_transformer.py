@@ -7,23 +7,27 @@ import time
 from utils import count_tokens
 from logger import log_pipeline_step
 
-# Initialize Query Rewrite LLM
-print("🔵 Initializing Query Rewriting LLM (Phi 2.7b) from Ollama...")
+print("\n🔵 [System] Initializing Query Rewriting LLM (Gemma3-1b) from Ollama...\n")
 
 rewrite_llm = Ollama(
-    model="phi:2.7b-chat-v2-q4_0",
+    model="gemma3:1b",  # ✅ Switched to Gemma3-1b
     base_url="http://localhost:11434",
     temperature=0.0
 )
+print("✅ [Success] Query Rewrite LLM loaded successfully.\n")
 
-print("✅ Query Rewrite LLM loaded successfully.")
-
-# Create Prompt Template
-print("🔵 Building Query Rewrite Prompt Template...")
+# Stronger Query Rewriting Prompt
+print("🔵 [System] Building Stronger Query Rewrite Prompt Template...\n")
 
 query_rewrite_prompt = PromptTemplate.from_template("""
-You are tasked with expanding the user's query into multiple clear and concise sub-questions for better retrieval.
-Format output as numbered list.
+You are an AI system tasked with expanding user queries to improve retrieval in a RAG system.
+
+STRICT INSTRUCTIONS:
+- Expand into 2–4 sub-questions only if meaningful.
+- **Strictly preserve** original meaning.
+- **Stay focused** on user's topic (fees, placements, batches, etc).
+- DO NOT invent unrelated new topics.
+- If already specific, just rephrase slightly.
 
 Original Query:
 {original_query}
@@ -34,29 +38,27 @@ Expanded Sub-Questions:
 3.
 """)
 
-print("✅ Query Rewrite Prompt Template ready.")
+print("✅ [Success] Stronger Query Rewrite Prompt ready.\n")
 
 # Build Rewrite Chain
 rewrite_chain = query_rewrite_prompt | rewrite_llm
-print("✅ Query Rewrite Chain ready.")
+print("✅ [Success] Query Rewrite Chain ready.\n")
 
 def rewrite_query_with_tracking(user_query: str, user_id: str):
-    print(f"🔵 Starting query transformation for user_id: {user_id}...")
+    print(f"🔵 [Transform] Starting query transformation for user_id: {user_id}...\n")
     input_tokens = count_tokens(user_query)
     start_time = time.time()
 
-    # Actual Rewriting
     rewritten = rewrite_chain.invoke({"original_query": user_query})
 
     end_time = time.time()
     output_tokens = count_tokens(rewritten)
 
-    print(f"✅ Query transformation completed.")
+    print(f"✅ [Transform] Query transformation completed.\n")
     print(f"🧠 Input Tokens: {input_tokens} | Output Tokens: {output_tokens}")
-    print(f"🕐 Time Taken: {end_time - start_time:.2f} seconds")
+    print(f"🕐 Time Taken: {end_time - start_time:.2f} seconds\n")
 
-    # Logging
-    log_pipeline_step("Query Transformation", user_query, input_tokens, output_tokens, end_time-start_time, user_id=user_id)
+    log_pipeline_step("Query Transformation", user_query, input_tokens, output_tokens, end_time - start_time, user_id=user_id)
 
     return rewritten
 

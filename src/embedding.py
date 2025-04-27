@@ -1,7 +1,8 @@
-from sentence_transformers import SentenceTransformer
+from langchain_community.embeddings import OllamaEmbeddings
 
-def load_embedding_model(model_name="all-MiniLM-L6-v2"):
-    return SentenceTransformer(model_name)
+def get_embedding_model():
+    return OllamaEmbeddings(
+        model="nomic-embed-text",  # FIXED model name!
+        base_url="http://localhost:11434"
+    )
 
-def create_embeddings(model, texts):
-    return model.encode(texts, show_progress_bar=True)
